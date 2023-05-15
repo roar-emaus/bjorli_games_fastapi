@@ -1,0 +1,177 @@
+/* Apply a CSS reset to ensure consistent styles across browsers */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  
+  /* Use a mobile-first approach to ensure the design is optimized for smaller screens */
+  /* Apply a responsive layout to adapt to different screen sizes */
+  /* Use REMs for font sizes to ensure scalability and accessibility */
+  /* Use CSS custom properties to ensure consistency and easy maintenance */
+  :root {
+    --color-primary: #4A90E2;
+    --color-secondary: #f5f5f5;
+    --color-text: #333;
+    --color-text-light: #666;
+    --color-background: #fff;
+    --color-background-alt: #f2f2f2;
+    --color-background-hover: #d5d5d5;
+    --color-shadow: rgba(0, 0, 0, 0.1);
+    --font-family: 'Roboto', sans-serif;
+  }
+  
+  body {
+    font-family: var(--font-family);
+    font-size: 1rem;
+    line-height: 1.5;
+    background-color: var(--color-secondary);
+    padding: 1rem;
+  }
+  
+  /* Use semantic HTML tags to improve accessibility */
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+  
+  h1 {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--color-primary);
+  }
+  
+  main {
+    margin-bottom: 1rem;
+  }
+  
+  label {
+    font-size: 0.875rem;
+    font-weight: bold;
+    color: var(--color-text);
+  }
+  
+  select {
+    font-size: 1rem;
+    color: var(--color-text);
+    padding: 0.5rem;
+    border: 1px solid var(--color-background-alt);
+    border-radius: 0.25rem;
+    background-color: var(--color-background);
+    margin-bottom: 0.5rem;
+  }
+  
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: var(--color-background);
+    box-shadow: 0 4px 6px var(--color-shadow);
+    color: var(--color-text);
+    margin-bottom: 1rem;
+  }
+  
+  th,
+  td {
+    border: none;
+    padding: 1rem;
+    text-align: left;
+  }
+  
+  th {
+    background-color: var(--color-primary);
+    font-weight: bold;
+    color: var(--color-background);
+  }
+  
+  tr:nth-child(even) {
+    background-color: var(--color-background-alt);
+  }
+  
+  tr:hover {
+    background-color: var(--color-background-hover);
+    transition: all 0.2s ease-in-out;
+  }
+  
+  /* Use flexbox to align elements */
+  .form-control {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+  }
+  
+  .form-control label {
+    margin-right: 0.5rem;
+  }
+  
+  .form-control input[type="text"] {
+    font-size: 1rem;
+    color: var(--color-text);
+    padding: 0.5rem;
+    border: 1px solid var(--color-background-alt);
+    border-radius: 0.25rem;
+    background-color: var(--color-background);
+  }
+  
+  .form-control button {
+    font-size: 1rem;
+    color: var(--color-background);
+    background-color: var(--color-primary);
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 0.25rem;
+    cursor: pointer;
+  }
+  
+  .form-control button:hover {
+    background-color: #2177C7;
+  }
+  /* Use descriptive class names to improve readability */
+.action-buttons {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 1rem;
+    }
+    
+    .action-buttons button {
+    margin-right: 0.5rem;
+    }
+    
+    /* Add hover and focus states to improve interactivity and accessibility */
+    a:hover,
+    a:focus {
+    color: var(--color-primary);
+    }
+    
+    button:hover,
+    button:focus {
+    background-color: #2177C7;
+    }
+    
+    input[type="text"]:focus,
+    select:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--color-primary);
+    }
+    
+    /* Add media queries to adjust styles for different screen sizes */
+    @media only screen and (min-width: 768px) {
+    body {
+    padding: 2rem;
+    }
+    
+    main {
+    display: flex;
+    }
+    
+    table {
+    margin-right: 2rem;
+    flex-grow: 1;
+    }
+    
+    .form-control {
+    margin-right: 2rem;
+    min-width: 20rem;
+    }
+    }
