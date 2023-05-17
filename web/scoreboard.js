@@ -17,10 +17,9 @@ addColumnBtn.addEventListener("click", addColumn);
 saveDataBtn.addEventListener("click", saveData);
 setTimeout(function() {
     fetchData();
-  }, 500); // Call handleSelection() function after 100 milliseconds
+  }, 500); // Call handleSelection() function after 500 milliseconds
 // Populate the table with data
 fetchOptions();
-//fetchData();
 
 // Function to fetch data from the server
 function fetchData() {
