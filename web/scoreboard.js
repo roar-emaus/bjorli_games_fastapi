@@ -26,9 +26,9 @@ function fetchData() {
     let selectedElement = gameSelect.options[gameSelect.selectedIndex];
     let year_month = selectedElement.value;
     let [year, month] = year_month.split("_");
-    const url = `http://localhost:8000/bjorlileikane/${year}/${month}`;
+    const url = `http://localhost:8123/api/${year}/${month}`;
 
-    fetch(url)
+    fetch(url, {credentials: 'include'})
         .then(response => response.json())
         .then(data => {
             addRowBtn.disabled = data.locked;
@@ -43,10 +43,16 @@ function fetchData() {
 
 // Function to fetch available games
 function fetchOptions() {
-    const url = 'http://localhost:8000/bjorlileikane/alleleika'
-    fetch(url)
-    .then (response => response.json())
+    const url = 'http://localhost:8123/api/alleleika'
+    fetch(url, {credentials: 'include'})
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
     .then(data => {
+        console.log(data);
         populateOptions(data.data);
     })
     .catch(error => {
@@ -234,11 +240,12 @@ function getSaveData() {
 function saveData() {
     let year_month = gameSelect.selectedElement.value;
     let [year, month] = year_month.split("_");
-    const url = `http://localhost:8000/bjorlileikane/${year}/${month}`;
+    const url = `http://localhost:8123/api/${year}/${month}`;
 
     const postData = getSaveData();
 
     fetch(url, {
+        credentials: 'include',
         method: "POST",
         headers: {
             "Content-Type": "application/json"

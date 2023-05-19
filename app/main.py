@@ -6,9 +6,9 @@ from typing import List, Dict, Tuple
 import csv
 import datetime
 
-bjorlileika_app = FastAPI()
+app = FastAPI()
 # Add CORS middleware to FastAPI app
-bjorlileika_app.add_middleware(
+app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # List of allowed origins, use ["*"] to allow all
     allow_credentials=True,
@@ -16,7 +16,7 @@ bjorlileika_app.add_middleware(
     allow_headers=["*"],  # List of allowed headers, use ["*"] to allow all
 )
 
-DATA_FOLDER = Path("data")
+DATA_FOLDER = Path(__file__)/"data"
 
 
 class ScoreData(BaseModel):
@@ -40,7 +40,7 @@ def get_latest_score_file(year: str, month: str) -> Tuple[Path, bool]:
     return csv_files[0], locked
 
 
-@bjorlileika_app.get("/bjorlileikane/{year}/{month}")
+@app.get("/bjorlileikane/{year}/{month}")
 async def get_score(year: str, month: str):
     try:
         latest_score_file, locked = get_latest_score_file(year, month)
@@ -53,7 +53,7 @@ async def get_score(year: str, month: str):
     return {"data": data, "header": "", "locked": locked}
 
 
-@bjorlileika_app.get("/bjorlileikane/alleleika")
+@app.get("/bjorlileikane/alleleika")
 async def get_games():
     available_games = []
     for subdir in DATA_FOLDER.iterdir():
@@ -64,7 +64,7 @@ async def get_games():
     return {"data": available_games}
 
 
-@bjorlileika_app.post("/bjorlileikane/{year}/{month}")
+@app.post("/bjorlileikane/{year}/{month}")
 async def post_score(year: str, month: str, score_data: ScoreData):
 
     target_folder = DATA_FOLDER / f"{year}_{month}"
