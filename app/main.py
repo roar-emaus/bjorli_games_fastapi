@@ -16,7 +16,7 @@ app.add_middleware(
     allow_headers=["*"],  # List of allowed headers, use ["*"] to allow all
 )
 
-DATA_FOLDER = Path(__file__)/"data"
+DATA_FOLDER = Path(__file__).parent/"data"
 
 
 class ScoreData(BaseModel):

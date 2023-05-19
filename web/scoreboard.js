@@ -1,3 +1,8 @@
+import BjorliAPI from './bjorliAPI.js';
+
+// Initialize the API wrapper 
+const api = new BjorliAPI('http://localhost:8123/bjorlileikane');
+
 const gameSelect = document.getElementById("gameSelect");
 const addRowBtn = document.getElementById("addRow");
 const addColumnBtn = document.getElementById("addColumn");
@@ -26,38 +31,20 @@ function fetchData() {
     let selectedElement = gameSelect.options[gameSelect.selectedIndex];
     let year_month = selectedElement.value;
     let [year, month] = year_month.split("_");
-    const url = `http://localhost:8123/api/${year}/${month}`;
 
-    fetch(url, {credentials: 'include'})
-        .then(response => response.json())
-        .then(data => {
-            addRowBtn.disabled = data.locked;
-            addColumnBtn.disabled = data.locked;
-            saveDataBtn.disabled = data.locked;
-            populateTable(data.data, data.locked);
-        })
-        .catch(error => {
-            console.error("Error fetching data:", error);
-        });
+    api.fetchGameData(year, month).then(data => {
+      addRowBtn.disabled = data.locked;
+      addColumnBtn.disabled = data.locked;
+      saveDataBtn.disabled = data.locked;
+      populateTable(data.data, data.locked);
+    });
 }
 
 // Function to fetch available games
 function fetchOptions() {
-    const url = 'http://localhost:8123/api/alleleika'
-    fetch(url, {credentials: 'include'})
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-    })
-    .then(data => {
-        console.log(data);
-        populateOptions(data.data);
-    })
-    .catch(error => {
-        console.error("Error fetching options", error)
-    });
+  api.fetchGameOptions().then(data => {
+    populateOptions(data.data);
+  });
 }
 
 function populateOptions(data) {  
@@ -172,9 +159,7 @@ function addRow(rowData = [], locked) {
 function addRowFromArray(rowData, tr, locked) {
     rowData.forEach((cellData, index) => {
         const cell = document.createElement(index === 0 ? "th" : "td");
-        console.log(locked);
         cell.contentEditable = locked ? "false" : "true";
-        console.log(cell.contentEditable);
         cell.textContent = cellData;
         tr.appendChild(cell);
     });
@@ -238,25 +223,10 @@ function getSaveData() {
 
 // Function to save the data
 function saveData() {
-    let year_month = gameSelect.selectedElement.value;
-    let [year, month] = year_month.split("_");
-    const url = `http://localhost:8123/api/${year}/${month}`;
-
-    const postData = getSaveData();
-
-    fetch(url, {
-        credentials: 'include',
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(postData)
-    })
-        .then(response => response.json())
-        .then(data => {
-            console.log("Data saved:", data);
-        })
-        .catch(error => {
-            console.error("Error saving data:", error);
-        });
+  let year_month = gameSelect.selectedElement.value;
+  let [year, month] = year_month.split("_");
+  const postData = getSaveData();
+  api.saveGameData(year, month, postData).then(data => {
+    console.log("Data saved:", data);
+  });
 }
