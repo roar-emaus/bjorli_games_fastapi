@@ -13,8 +13,6 @@ const tbody = scoreTable.querySelector("tbody");
 
 // Attach event listeners
 gameSelect.addEventListener("change", function() {
-    let selectedElement = gameSelect.options[gameSelect.selectedIndex];
-    let selectedValue = selectedElement.value;
     fetchData();
 });
 addRowBtn.addEventListener("click", addRow);
@@ -223,7 +221,8 @@ function getSaveData() {
 
 // Function to save the data
 function saveData() {
-  let year_month = gameSelect.selectedElement.value;
+  let selectedElement = gameSelect.options[gameSelect.selectedIndex];
+  let year_month = selectedElement.value;
   let [year, month] = year_month.split("_");
   const postData = getSaveData();
   api.saveGameData(year, month, postData).then(data => {
