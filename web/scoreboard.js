@@ -1,102 +1,75 @@
 import BjorliAPI from './bjorliAPI.js';
 
-// Initialize the API wrapper 
-const api = new BjorliAPI('http://localhost:8123/bjorlileikane');
+const API_URL = 'http://localhost:8123/bjorlileikane';
+const INITIAL_FETCH_DELAY_MS = 500;
 
-const gameSelect = document.getElementById("gameSelect");
-const addRowBtn = document.getElementById("addRow");
-const addColumnBtn = document.getElementById("addColumn");
-const saveDataBtn = document.getElementById("saveData");
-const scoreTable = document.getElementById("scoreTable");
-const thead = scoreTable.querySelector("thead tr");
-const tbody = scoreTable.querySelector("tbody");
+const api = new BjorliAPI(API_URL);
 
-// Attach event listeners
-gameSelect.addEventListener("change", function() {
-    fetchData();
-});
-addRowBtn.addEventListener("click", addRow);
-addColumnBtn.addEventListener("click", addColumn);
-saveDataBtn.addEventListener("click", saveData);
-setTimeout(function() {
-    fetchData();
-  }, 500); // Call handleSelection() function after 500 milliseconds
-// Populate the table with data
-fetchOptions();
+const UI_ELEMENTS = {
+  gameSelect: document.getElementById("gameSelect"),
+  addRowBtn: document.getElementById("addRow"),
+  addColumnBtn: document.getElementById("addColumn"),
+  saveDataBtn: document.getElementById("saveData"),
+  scoreTable: document.getElementById("scoreTable"),
+  get thead() { return this.scoreTable.querySelector("thead tr") },
+  get tbody() { return this.scoreTable.querySelector("tbody") },
+};
 
-// Function to fetch data from the server
-function fetchData() {
-    let selectedElement = gameSelect.options[gameSelect.selectedIndex];
+UI_ELEMENTS.gameSelect.addEventListener("change", fetchGameData);
+UI_ELEMENTS.addRowBtn.addEventListener("click", addScoreRow);
+UI_ELEMENTS.addColumnBtn.addEventListener("click", addGameColumn);
+UI_ELEMENTS.saveDataBtn.addEventListener("click", saveScoreData);
+
+setTimeout(fetchGameData, INITIAL_FETCH_DELAY_MS);
+fetchGameOptions();
+
+function fetchGameData() {
+    let selectedElement = UI_ELEMENTS.gameSelect.options[UI_ELEMENTS.gameSelect.selectedIndex];
     let year_month = selectedElement.value;
     let [year, month] = year_month.split("_");
 
     api.fetchGameData(year, month).then(data => {
-      addRowBtn.disabled = data.locked;
-      addColumnBtn.disabled = data.locked;
-      saveDataBtn.disabled = data.locked;
-      populateTable(data.data, data.locked);
-    });
+      UI_ELEMENTS.addRowBtn.disabled = data.locked;
+      UI_ELEMENTS.addColumnBtn.disabled = data.locked;
+      UI_ELEMENTS.saveDataBtn.disabled = data.locked;
+      populateScoreTable(data.data, data.locked);
+    }).catch(console.error);
 }
 
-// Function to fetch available games
-function fetchOptions() {
-  api.fetchGameOptions().then(data => {
-    populateOptions(data.data);
-  });
+function fetchGameOptions() {
+  api.fetchGameOptions().then(populateGameSelection).catch(console.error);
 }
 
-function populateOptions(data) {  
-    data.sort((a, b) => b.localeCompare(a)); // Sort the data array in reverse order
-    for (let i = 0; i < data.length; i++){
+function populateGameSelection(data) {  
+    data.data.sort((a, b) => b.localeCompare(a));
+    data.data.forEach(option => {
         let optionElement = document.createElement("option");
-        optionElement.value = data[i];
-        optionElement.text = data[i].replace("_", "/");
-        gameSelect.appendChild(optionElement);
-    }
-}
-
-// Function to populate the table with data
-function populateTable(data, locked) {
-    // Clear existing table content
-    clearTable();
-
-    // Populate table headers
-    populateHeaders(data[0]);
-
-    // Populate table rows
-    data.slice(1).forEach(rowData => {
-        addRow(rowData, locked);
+        optionElement.value = option;
+        optionElement.text = option.replace("_", "/");
+        UI_ELEMENTS.gameSelect.appendChild(optionElement);
     });
-
-    updateTable();
 }
 
-// Function to clear the table
-function clearTable() {
-    thead.innerHTML = "";
-    tbody.innerHTML = "";
+function populateScoreTable(data, locked) {
+    clearScoreTable();
+    populateScoreTableHeaders(data[0]);
+    data.slice(1).forEach(rowData => addScoreRow(rowData, locked));
+    updateScoreTable();
 }
 
-// Function to update the total cell for a given row
-function updateTotalCell(row) {
+function clearScoreTable() {
+    UI_ELEMENTS.thead.innerHTML = "";
+    UI_ELEMENTS.tbody.innerHTML = "";
+}
+
+function updateScoreTotalForCell(row) {
     const totalCell = row.querySelector(".total");
     const scoreCells = Array.from(row.querySelectorAll("td")).slice(0, -1);
-    const total = scoreCells.reduce((sum, cell) => {
-        const value = parseInt(cell.textContent, 10);
-        const returnValue = NaN;
-        if (isNaN(value)){
-            return sum * 1;
-        } else if (value === 0) {
-            return sum * 1;
-        } else {
-            return sum * value;
-        }
-    }, 1);
+    const total = scoreCells.reduce((sum, cell) => sum * (parseInt(cell.textContent, 10) || 1), 1);
     totalCell.textContent = total;
 }
 
-// Function to sort the table rows by total
-function sortRowsByTotal(rows) {
+function sortRowsByTotalScore(rows) {
     return Array.from(rows).sort((a, b) => {
         const aValue = parseInt(a.querySelector(".total").textContent, 10);
         const bValue = parseInt(b.querySelector(".total").textContent, 10);
@@ -104,106 +77,64 @@ function sortRowsByTotal(rows) {
     });
 }
 
-// Function to re-append sorted rows to the tbody
-function reAppendSortedRows(rows) {
-    rows.forEach(row => tbody.appendChild(row));
+function appendSortedRows(rows) {
+    rows.forEach(row => UI_ELEMENTS.tbody.appendChild(row));
 }
 
-// Function to update the table
-function updateTable() {
-    const rows = tbody.querySelectorAll("tr");
-    rows.forEach(updateTotalCell);
-    const sortedRows = sortRowsByTotal(rows);
-    reAppendSortedRows(sortedRows);
+function updateScoreTable() {
+    const rows = UI_ELEMENTS.tbody.querySelectorAll("tr");
+    rows.forEach(updateScoreTotalForCell);
+    appendSortedRows(sortRowsByTotalScore(rows));
 }
 
-// Function to populate the table headers
-function populateHeaders(headers) {
-    headers.forEach(header => {
-        const th = document.createElement("th");
-        th.textContent = header;
-        thead.appendChild(th);
-    });
-    const th = document.createElement("th");
-    th.textContent = "Total";
-    thead.appendChild(th);
+function populateScoreTableHeaders(headers) {
+    headers.forEach(header => UI_ELEMENTS.thead.appendChild(createHeaderCell(header)));
+    UI_ELEMENTS.thead.appendChild(createHeaderCell("Total"));
 }
 
-// Function to add a new row to the table
-function addRow(rowData = [], locked) {
+function addScoreRow(rowData = [], locked) {
     const tr = document.createElement("tr");
-    
-    // Check if rowData is an array or an object
-    if (Array.isArray(rowData)) {
-        addRowFromArray(rowData, tr, locked);
-    } else if (rowData instanceof MouseEvent){
-        addRowFromClick(rowData, tr);
-    }
-
-    // Add "Total" cell
-    const totalCell = document.createElement("td");
-    totalCell.classList.add("total");
-    tr.appendChild(totalCell);
-
-    // Attach event listeners for updating the table when cell content changes
-    tr.querySelectorAll("td").forEach(cell => {
-        cell.addEventListener("input", updateTable);
-    });
-
-    tbody.appendChild(tr);
+    Array.isArray(rowData) ? addScoreRowFromArray(rowData, tr, locked) : addScoreRowFromClickEvent(rowData, tr);
+    tr.appendChild(createTotalCell());
+    tr.querySelectorAll("td").forEach(cell => cell.addEventListener("input", updateScoreTable));
+    UI_ELEMENTS.tbody.appendChild(tr);
 }
 
-// Function to add a new row to the table from an array
-function addRowFromArray(rowData, tr, locked) {
+function addScoreRowFromArray(rowData, tr, locked) {
     rowData.forEach((cellData, index) => {
-        const cell = document.createElement(index === 0 ? "th" : "td");
-        cell.contentEditable = locked ? "false" : "true";
-        cell.textContent = cellData;
+        let cell = null;
+        if (index === 0){
+            cell = createHeaderCell(cellData);
+        } else {
+            cell = document.createElement("td");
+            cell.contentEditable = locked ? "false" : "true";
+            cell.textContent = cellData;
+        }
         tr.appendChild(cell);
     });
 }
 
-// Function to add a new row to the table from a click event
-
-function addRowFromClick(rowData, tr) {
-    const nameCell = document.createElement("th");
-    nameCell.contentEditable = "true";
-    const newContestant = prompt("Hva er spillerns navn?");
-
-    nameCell.textContent = newContestant;
-    tr.appendChild(nameCell);
-
-    const headers = Array.from(thead.querySelectorAll("th")).slice(1, -1); // skip the first "Name" header
-    headers.forEach(header => {
-        const cell = document.createElement("td");
-        cell.contentEditable = "true";
-        cell.textContent = rowData[header.textContent] || 0;
-        tr.appendChild(cell);
-    });
+function addScoreRowFromClickEvent(rowData, tr) {
+    tr.appendChild(createHeaderCell(prompt("Hva er spillerns navn?")));
+    const headers = Array.from(UI_ELEMENTS.thead.querySelectorAll("th")).slice(1, -1);
+    headers.forEach(header => tr.appendChild(createEditableCell(rowData[header.textContent] || 0)));
 }
 
-function addColumn() {
+function addGameColumn() {
     const newHeader = prompt("Hva er spillets navn?");
     if (newHeader === null || newHeader.trim() === "") return;
-
-    const th = document.createElement("th");
-    th.textContent = newHeader;
-    thead.insertBefore(th, thead.lastElementChild);
-
-    tbody.querySelectorAll("tr").forEach(tr => {
-        const td = document.createElement("td");
-        td.contentEditable = "true";
-        td.textContent = 0;
-        td.addEventListener("input", updateTable);
+    UI_ELEMENTS.thead.insertBefore(createHeaderCell(newHeader), UI_ELEMENTS.thead.lastElementChild);
+    UI_ELEMENTS.tbody.querySelectorAll("tr").forEach(tr => {
+        const td = createEditableCell(0);
+        td.addEventListener("input", updateScoreTable);
         tr.insertBefore(td, tr.lastElementChild);
     });
 }
 
-// Function to get the data to save
-function getSaveData() {
-    const headers = Array.from(thead.querySelectorAll("th")).slice(0, -1).map(th => th.textContent);
+function getScoreDataToSave() {
+    const headers = Array.from(UI_ELEMENTS.thead.querySelectorAll("th")).slice(0, -1).map(th => th.textContent);
     const gamesIndex = headers.indexOf("Deltager") + 1;
-    const scores = Array.from(tbody.querySelectorAll("tr")).map(tr => {
+    const scores = Array.from(UI_ELEMENTS.tbody.querySelectorAll("tr")).map(tr => {
         const rowCells = Array.from(tr.querySelectorAll("td")).slice(0, -1);
         const nameCell = tr.querySelector("th");
         const scoreData = {};
@@ -219,13 +150,39 @@ function getSaveData() {
     };
 }
 
-// Function to save the data
-function saveData() {
-  let selectedElement = gameSelect.options[gameSelect.selectedIndex];
+function saveScoreData() {
+  let selectedElement = UI_ELEMENTS.gameSelect.options[UI_ELEMENTS.gameSelect.selectedIndex];
   let year_month = selectedElement.value;
   let [year, month] = year_month.split("_");
-  const postData = getSaveData();
+  const postData = getScoreDataToSave();
   api.saveGameData(year, month, postData).then(data => {
     console.log("Data saved:", data);
-  });
+  }).catch(console.error);
 }
+
+function createHeaderCell(text) {
+    const th = document.createElement("th");
+    th.textContent = text;
+    return th;
+}
+
+function createTotalCell() {
+    const totalCell = document.createElement("td");
+    totalCell.classList.add("total");
+    return totalCell;
+}
+
+function createEditableHeaderCell(text) {
+    const th = document.createElement("th");
+    th.contentEditable = "true";
+    th.textContent = text;
+    return th;
+}
+
+function createEditableCell(text) {
+    const td = document.createElement("td");
+    td.contentEditable = "true";
+    td.textContent = text;
+    return td;
+}
+
