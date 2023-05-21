@@ -1,6 +1,6 @@
 import BjorliAPI from './bjorliAPI.js';
 
-const API_URL = 'http://localhost:8123/bjorlileikane';
+const API_URL = 'http://dypnet.no/bjorli_api/';
 const INITIAL_FETCH_DELAY_MS = 500;
 
 const api = new BjorliAPI(API_URL);

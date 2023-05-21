@@ -40,7 +40,7 @@ def get_latest_score_file(year: str, month: str) -> Tuple[Path, bool]:
     return csv_files[0], locked
 
 
-@app.get("/bjorlileikane/{year}/{month}")
+@app.get("/api/{year}/{month}")
 async def get_score(year: str, month: str):
     try:
         latest_score_file, locked = get_latest_score_file(year, month)
@@ -53,7 +53,7 @@ async def get_score(year: str, month: str):
     return {"data": data, "header": "", "locked": locked}
 
 
-@app.get("/bjorlileikane/alleleika")
+@app.get("/api/alleleika")
 async def get_games():
     available_games = []
     for subdir in DATA_FOLDER.iterdir():
@@ -64,7 +64,7 @@ async def get_games():
     return {"data": available_games}
 
 
-@app.post("/bjorlileikane/{year}/{month}")
+@app.post("/api/{year}/{month}")
 async def post_score(year: str, month: str, score_data: ScoreData):
 
     target_folder = DATA_FOLDER / f"{year}_{month}"
